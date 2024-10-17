@@ -1,17 +1,14 @@
 import json
 import os
-import urllib.parse
-from io import BytesIO
 from time import time, perf_counter
 
-import pycurl
 from bitstring import Bits
 from junit_xml import TestSuite, TestCase, to_xml_report_file
 from kitty.targets.server import ServerTarget
 
 from apifuzzer.apifuzzerreport import ApifuzzerReport as Report
 from apifuzzer.fuzzer_target.request_base_functions import FuzzerTargetBase
-from apifuzzer.utils import try_b64encode, init_pycurl, get_logger
+from apifuzzer.utils import try_b64encode, get_logger
 
 
 class Return:
@@ -121,69 +118,34 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
                 "request_headers", json.dumps(dict(kwargs.get("headers", {})))
             )
             try:
-                resp_buff_hdrs = BytesIO()
-                resp_buff_body = BytesIO()
-                buffer = BytesIO()
-                _curl = init_pycurl()
-                _curl.setopt(pycurl.URL, self.format_pycurl_url(request_url))
-                _curl.setopt(pycurl.HEADERFUNCTION, self.header_function)
-                _curl.setopt(pycurl.POST, len(kwargs.get("data", {}).items()))
-                _curl.setopt(pycurl.CUSTOMREQUEST, method)
-                headers = kwargs["headers"]
-                if content_type:
-                    self.logger.debug(f"Adding Content-Type: {content_type} header")
-                    headers.update({"Content-Type": content_type})
-                _curl.setopt(pycurl.HTTPHEADER, self.format_pycurl_header(headers))
-                if content_type == "multipart/form-data":
-                    post_data = list()
-                    for k, v in kwargs.get("data", {}).items():
-                        post_data.append((k, v))
-                    _curl.setopt(pycurl.HTTPPOST, post_data)
-                elif content_type == "application/json":
-                    _json_data = (
-                        json.dumps(kwargs.get("data", {}), ensure_ascii=True)
-                            .encode("utf-8")
-                            .decode("utf-8", "ignore")
-                    )
-                    _curl.setopt(pycurl.POSTFIELDS, _json_data)
-                else:
-                    # default content type: application/x-www-form-urlencoded
-                    _curl.setopt(
-                        pycurl.POSTFIELDS,
-                        urllib.parse.urlencode(kwargs.get("data", {})),
-                    )
-                _curl.setopt(pycurl.HEADERFUNCTION, resp_buff_hdrs.write)
-                _curl.setopt(pycurl.WRITEFUNCTION, resp_buff_body.write)
-                for retries in reversed(range(0, 3)):
-                    try:
-                        _curl.perform()
-                        self.report.set_status(Report.PASSED)
-                        # TODO: Handle this: pycurl.error: (3, 'Illegal characters found in URL')
-                    except pycurl.error as e:
-                        self.logger.warning(f"Failed to send request because of {e}")
-                        self.report.set_status(Report.ERROR)
-                        self.report.add('exception', e.msg if hasattr(e, 'msg') else str(e))
-                    except Exception as e:
-                        if not retries:
-                            raise
-                        self.logger.error(
-                            "Retrying... ({}) because {}".format(retries, e)
-                        )
-                        self.report.set_status(Report.ERROR)
-                        self.report.add('exception', e.msg if hasattr(e, 'msg') else str(e))
+                import requests
+                from requests_auth_aws_sigv4 import AWSSigV4
+                import boto3
+
+                session = boto3.Session()
+
+                req = requests.request(
+                    method=method,
+                    url=request_url,
+                    params=kwargs.get("params", {}),
+                    data=kwargs.get("data", {}),
+                    headers=kwargs.get("headers"),
+                    auth=AWSSigV4("execute-api", session=session),
+                )
                 _return = Return()
-                _return.status_code = _curl.getinfo(pycurl.RESPONSE_CODE)
-                _return.headers = self.resp_headers
-                _return.content = buffer.getvalue()
+                _return.status_code = req.status_code
+                _return.headers = req.headers
+                _return.content = req.content
                 _return.request = Return()
-                _return.request.headers = kwargs.get("headers", {})
-                _return.request.body = kwargs.get("data", {})
-                _curl.close()
+                _return.request.headers = req.request.headers
+                _return.request.body = req.request.body
             except Exception as e:
                 self.logger.exception(e)
                 self.report.set_status(Report.ERROR)
                 self.logger.error("Request failed, reason: {}".format(e))
-                self.report.add('request_sending_failed', e.msg if hasattr(e, 'msg') else str(e))
+                self.report.add(
+                    "request_sending_failed", e.msg if hasattr(e, "msg") else str(e)
+                )
                 # self.report.add('request_sending_failed', e.msg if hasattr(e, 'msg') else e)
                 self.report.add("request_method", method)
                 return
@@ -230,10 +192,10 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
         if self.junit_report_path:
             report_dict = self.report.to_dict()
             test_case = TestCase(
-                    name=f"{self.test_number}: {report_dict['request_url']}",
+                name=f"{self.test_number}: {report_dict['request_url']}",
                 status=self.report.get_status(),
                 timestamp=time(),
-                elapsed_sec=perf_counter() - self.transmit_start_test
+                elapsed_sec=perf_counter() - self.transmit_start_test,
             )
             if self.report.get_status() == Report.FAILED:
                 test_case.add_failure_info(message=json.dumps(self.report.to_dict()))
@@ -250,11 +212,15 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
                     os.makedirs(os.path.dirname(self.report_dir))
                 except OSError:
                     pass
-            with open(f"{self.report_dir}/{str(self.test_number + 1).zfill(4)}_{int(time())}.json", "w") \
-                as report_dump_file:
+            with open(
+                f"{self.report_dir}/{str(self.test_number + 1).zfill(4)}_{int(time())}.json",
+                "w",
+            ) as report_dump_file:
                 report_dump_file.write(json.dumps(self.report.to_dict()))
         except Exception as e:
-            self.logger.error(f'Failed to save report "{self.report.to_dict()}" to {self.report_dir} because: {e}')
+            self.logger.error(
+                f'Failed to save report "{self.report.to_dict()}" to {self.report_dir} because: {e}'
+            )
 
     def report_add_basic_msg(self, msg):
         self.report.set_status(Report.FAILED)
@@ -271,7 +237,11 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
             with open(self.junit_report_path, "w") as report_file:
                 to_xml_report_file(
                     report_file,
-                    [TestSuite(name="API Fuzzer", test_cases=test_cases, timestamp=time())],
-                    prettyprint=True
+                    [
+                        TestSuite(
+                            name="API Fuzzer", test_cases=test_cases, timestamp=time()
+                        )
+                    ],
+                    prettyprint=True,
                 )
         super(ServerTarget, self).teardown()  # pylint: disable=E1003
