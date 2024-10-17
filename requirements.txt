@@ -3,5 +3,6 @@ pycurl==7.45.2
 ruamel.yaml==0.16.12
 junit-xml==1.9
 jsonpath-ng==1.5.2
-PyYAML==6.0
+PyYAML==6.0.1
 json-ref-dict>=0.7.1
+requests-auth-aws-sigv4==0.7
