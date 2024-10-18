@@ -20,7 +20,7 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
         _ = func_name
         pass
 
-    def __init__(self, name, base_url, report_dir, auth_headers, junit_report_path):
+    def __init__(self, name, base_url, report_dir, auth_headers, junit_report_path, aws_auth=False):
         super(ServerTarget, self).__init__(name)  # pylint: disable=E1003
         super(FuzzerTargetBase, self).__init__(auth_headers)  # pylint: disable=E1003
         self.logger = get_logger(self.__class__.__name__)
@@ -33,6 +33,7 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
         self.logger.info("Logger initialized")
         self.resp_headers = dict()
         self.transmit_start_test = None
+        self.aws_auth = aws_auth
 
     def pre_test(self, test_num):
         """
