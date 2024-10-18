@@ -124,14 +124,18 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
 
                 session = boto3.Session()
 
-                req = requests.request(
+                arguments = dict(
                     method=method,
                     url=request_url,
                     params=kwargs.get("params", {}),
                     data=kwargs.get("data", {}),
                     headers=kwargs.get("headers"),
-                    auth=AWSSigV4("execute-api", session=session),
                 )
+
+                if self.aws_auth:
+                    arguments["auth"] = AWSSigV4("execute-api", session=session)
+
+                req = requests.request(**arguments)
                 _return = Return()
                 _return.status_code = req.status_code
                 _return.headers = req.headers

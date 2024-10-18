@@ -6,7 +6,6 @@ from flask import Flask, request
 
 
 class LastRequestData(object):
-
     def __init__(self):
         self.last_request_data = dict()
 

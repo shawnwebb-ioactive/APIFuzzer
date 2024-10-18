@@ -205,7 +205,6 @@ class FuzzerTargetBase:
             self.chop_left = True
             self.chop_right = True
             while True:
-
                 iteration = iteration + 1
                 try:
                     _dummy_curl.setopt(

@@ -11,7 +11,6 @@ from apifuzzer.fuzzer import Fuzzer
 
 
 class BaseTest:
-
     @pytest.fixture(autouse=True)
     def setup_class(cls):
         """

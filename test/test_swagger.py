@@ -2,7 +2,6 @@ from test.test_utils import BaseTest
 
 
 class TestSwagger(BaseTest):
-
     def test_single_path_parameter(self):
         test_url = "/path_param"
         api_path = "/".join([test_url, "{integer_id}"])
