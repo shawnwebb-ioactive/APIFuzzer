@@ -136,7 +136,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--aws_profile",
-        required=Fa,se
+        required=False,
         help="AWS profile to use",
         dest="aws_profile",
         default=None,
