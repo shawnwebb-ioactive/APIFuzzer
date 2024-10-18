@@ -126,7 +126,7 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
                 import boto3
 
                 session = boto3.Session(
-                    profile=self.aws_profile
+                    profile_name=self.aws_profile
                 )
 
                 arguments = dict(
