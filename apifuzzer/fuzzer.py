@@ -21,6 +21,7 @@ class Fuzzer(object):
         api_definition_url=None,
         api_definition_file=None,
         junit_report_path=None,
+        aws_auth=False,
     ):
         self.base_url = None
         self.alternate_url = alternate_url
@@ -34,6 +35,7 @@ class Fuzzer(object):
         self.logger.info("%s initialized", get_version())
         self.api_definition_url = api_definition_url
         self.api_definition_file = api_definition_file
+        self.aws_auth = aws_auth
 
     def prepare(self):
         # here we will be able to branch the template generator if we will support other than Swagger / OpenAPI
@@ -56,6 +58,7 @@ class Fuzzer(object):
             report_dir=self.report_dir,
             auth_headers=self.auth_headers,
             junit_report_path=self.junit_report_path,
+            aws_auth=self.aws_auth,
         )
         interface = WebInterface()
         model = APIFuzzerModel()
