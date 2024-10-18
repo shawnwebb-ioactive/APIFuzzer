@@ -6,7 +6,6 @@
 #   "charset-normalizer==3.4.0",
 #   "click==8.1.7",
 #   "decorator==5.1.1",
-#   "docopt==0.6.2",
 #   "idna==3.10",
 #   "jmespath==1.0.1",
 #   "json-ref-dict==0.7.2",
@@ -27,6 +26,7 @@
 #   "ruamel.yaml==0.16.12",
 #   "s3transfer==0.10.3",
 #   "six==1.16.0",
+#   "setuptools",
 #   "tomli==2.0.2",
 #   "typing_extensions==4.12.2",
 #   "urllib3==2.2.3"
