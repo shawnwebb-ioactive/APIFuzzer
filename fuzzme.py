@@ -1,4 +1,37 @@
-#!/usr/bin/env python3
+# /// script
+# dependencies = [
+#   "boto3==1.35.42",
+#   "botocore==1.35.42",
+#   "certifi==2024.8.30",
+#   "charset-normalizer==3.4.0",
+#   "click==8.1.7",
+#   "decorator==5.1.1",
+#   "docopt==0.6.2",
+#   "idna==3.10",
+#   "jmespath==1.0.1",
+#   "json-ref-dict==0.7.2",
+#   "jsonpath-ng==1.5.2",
+#   "jsonpointer==2.4",
+#   "junit-xml==1.9",
+#   "kittyfuzzer==0.7.4",
+#   "mypy-extensions==1.0.0",
+#   "packaging==24.1",
+#   "pathspec==0.12.1",
+#   "platformdirs==4.3.6",
+#   "ply==3.11",
+#   "pycurl==7.45.2",
+#   "python-dateutil==2.9.0.post0",
+#   "PyYAML==6.0.1",
+#   "requests==2.32.3",
+#   "requests-auth-aws-sigv4==0.7",
+#   "ruamel.yaml==0.16.12",
+#   "s3transfer==0.10.3",
+#   "six==1.16.0",
+#   "tomli==2.0.2",
+#   "typing_extensions==4.12.2",
+#   "urllib3==2.2.3"
+#  ]
+# ///
 
 import argparse
 import signal
