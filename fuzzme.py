@@ -134,6 +134,13 @@ if __name__ == "__main__":
         help="Use AWS SigV4 authentication",
         dest="aws_auth",
     )
+    parser.add_argument(
+        "--aws_profile",
+        required=Fa,se
+        help="AWS profile to use",
+        dest="aws_profile",
+        default=None,
+    )
     parser.add_argument("-v", "--version", action="version", version=get_version())
     args = parser.parse_args()
     if args.src_file is None and args.src_url is None:
@@ -153,6 +160,7 @@ if __name__ == "__main__":
         api_definition_file=args.src_file,
         junit_report_path=args.test_result_dst,
         aws_auth=args.aws_auth,
+        aws_profile=args.aws_profile,
     )
     try:
         prog.prepare()
