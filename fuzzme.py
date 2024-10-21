@@ -141,6 +141,12 @@ if __name__ == "__main__":
         dest="aws_profile",
         default=None,
     )
+    parser.add_argument(
+        "--aws_region_name",
+        help="AWS region",
+        dest="aws_region",
+        default=None,
+    )
     parser.add_argument("-v", "--version", action="version", version=get_version())
     args = parser.parse_args()
     if args.src_file is None and args.src_url is None:
@@ -161,6 +167,7 @@ if __name__ == "__main__":
         junit_report_path=args.test_result_dst,
         aws_auth=args.aws_auth,
         aws_profile=args.aws_profile,
+        aws_region=args.aws_region,
     )
     try:
         prog.prepare()

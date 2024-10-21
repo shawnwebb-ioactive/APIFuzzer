@@ -21,7 +21,8 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
         pass
 
     def __init__(self, name, base_url, report_dir, auth_headers,
-                 junit_report_path, aws_auth=False, aws_profile=None):
+                 junit_report_path, aws_auth=False, aws_profile=None,
+                 aws_region=None):
         super(ServerTarget, self).__init__(name)  # pylint: disable=E1003
         super(FuzzerTargetBase, self).__init__(auth_headers)  # pylint: disable=E1003
         self.logger = get_logger(self.__class__.__name__)
@@ -36,6 +37,7 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
         self.transmit_start_test = None
         self.aws_auth = aws_auth
         self.aws_profile = aws_profile
+        self.aws_region = aws_region
 
     def pre_test(self, test_num):
         """
@@ -126,7 +128,8 @@ class FuzzerTarget(FuzzerTargetBase, ServerTarget):
                 import boto3
 
                 session = boto3.Session(
-                    profile_name=self.aws_profile
+                    profile_name=self.aws_profile,
+                    region_name=self.aws_region,
                 )
 
                 arguments = dict(
